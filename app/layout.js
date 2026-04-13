@@ -14,6 +14,11 @@ const bodyFont = Sora({
 export const metadata = {
     title: 'Volleyball Team Shake',
     description: 'Frontend-only volleyball team generator with setter constraints.',
+    icons: {
+        icon: '/volleyball-logo.png',
+        shortcut: '/volleyball-logo.png',
+        apple: '/volleyball-logo.png',
+    },
 };
 
 export default function RootLayout({ children }) {

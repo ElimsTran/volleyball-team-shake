@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import PlayerForm from '@/components/player-form';
 import PlayerList from '@/components/player-list';
 import TeamResults from '@/components/team-results';
@@ -180,7 +181,17 @@ export default function TeamGeneratorApp() {
                         <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-center">
                             <div className="score-panel rounded-[1.5rem] p-4 text-white">
                                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/65">Match mode</p>
-                                <h1 className="headline-font mt-2 text-3xl font-bold md:text-4xl">Volleyball Team Shake</h1>
+                                <div className="mt-2 flex items-center gap-3">
+                                    <Image
+                                        src="/volleyball-logo.png"
+                                        alt="Volleyball logo"
+                                        width={46}
+                                        height={46}
+                                        className="h-11 w-11 rounded-full bg-white/92 p-1"
+                                        priority
+                                    />
+                                    <h1 className="headline-font text-3xl font-bold md:text-4xl">Volleyball Team Shake</h1>
+                                </div>
                             </div>
 
                             <div className="scoreboard-core rounded-[1.5rem] px-5 py-4 text-center text-white">
