@@ -17,6 +17,12 @@ const COURT_POSITION_ROWS_MIRROR = [
     [4, 5],
 ];
 
+const MOBILE_POSITION_ROWS = [
+    [1, 2],
+    [3, 4],
+    [5, 6],
+];
+
 const POSITION_META = {
     1: { name: 'Back Right', lane: 'Back', duty: 'Setter' },
     2: { name: 'Front Right', lane: 'Front', duty: 'Opposite Hitter' },
@@ -95,6 +101,7 @@ function PlayerMiniCard({
     positionNumber,
     teamVariant,
     compact = false,
+    className = '',
     isDropTarget,
     onDragStart,
     onDragEnd,
@@ -108,7 +115,7 @@ function PlayerMiniCard({
             onDragEnd={onDragEnd}
             onDragOver={onDragOver}
             onDrop={onDrop}
-            className={`team-player-mini-card flex cursor-grab items-center justify-between gap-2 rounded-2xl px-2.5 py-2 transition active:cursor-grabbing ${player.role === 'setter' ? 'team-player-card-setter' : ''} ${isDropTarget ? 'team-player-card-target' : ''} ${compact ? 'team-player-mini-card-compact' : ''}`}
+            className={`team-player-mini-card flex cursor-grab items-center justify-between gap-2 rounded-2xl px-2.5 py-2 transition active:cursor-grabbing ${player.role === 'setter' ? 'team-player-card-setter' : ''} ${isDropTarget ? 'team-player-card-target' : ''} ${compact ? 'team-player-mini-card-compact' : ''} ${className}`}
         >
             <div className="flex min-w-0 items-start gap-2">
                 <PlayerAvatar playerName={player.name} seedOffset={0} variant={teamVariant} className="h-9 w-9" />
@@ -161,24 +168,126 @@ function PositionSlot({
                 {positionMeta.name}
             </p>
 
-            {player ? (
-                <PlayerMiniCard
-                    player={player}
-                    positionNumber={positionNumber}
-                    teamVariant={teamVariant}
-                    compact
-                    isDropTarget={isDropTarget}
-                    onDragStart={(event) => onPlayerDragStart(event, teamId, player.id)}
-                    onDragEnd={onDragEnd}
-                    onDragOver={(event) => onAllowDrop(event, teamId, player.id, positionNumber)}
-                    onDrop={(event) => onDrop(event, teamId, player.id, positionNumber)}
-                />
-            ) : (
-                <div className="court-slot-empty rounded-xl border border-dashed border-white/25 px-2 py-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/50">
-                    Empty
-                </div>
-            )}
+            <div className="court-slot-body">
+                {player ? (
+                    <PlayerMiniCard
+                        player={player}
+                        positionNumber={positionNumber}
+                        teamVariant={teamVariant}
+                        compact
+                        className="h-full"
+                        isDropTarget={isDropTarget}
+                        onDragStart={(event) => onPlayerDragStart(event, teamId, player.id)}
+                        onDragEnd={onDragEnd}
+                        onDragOver={(event) => onAllowDrop(event, teamId, player.id, positionNumber)}
+                        onDrop={(event) => onDrop(event, teamId, player.id, positionNumber)}
+                    />
+                ) : (
+                    <div className="court-slot-empty rounded-xl border border-dashed border-white/25 px-2 py-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/50">
+                        Empty
+                    </div>
+                )}
+            </div>
         </div>
+    );
+}
+
+function TeamLineupCard({
+    team,
+    teamVariant,
+    playerByPosition,
+    benchPlayers,
+    isDropTarget,
+    onAllowDrop,
+    onDrop,
+    onPlayerDragStart,
+    onDragEnd,
+}) {
+    return (
+        <article
+            className={`team-card rounded-[1.75rem] p-5 transition ${isDropTarget(team.id, null) ? 'team-card-drop' : ''}`}
+            onDragOver={(event) => onAllowDrop(event, team.id)}
+            onDrop={(event) => onDrop(event, team.id)}
+        >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h3 className="headline-font flex items-center gap-2 text-xl font-bold">
+                        <VolleyballIcon className="h-5 w-5 text-(--accent-strong)" />
+                        Team {team.id}
+                    </h3>
+                    <p className="mt-1 text-sm text-(--muted)">
+                        Setter centered, attackers on side lanes, {benchPlayers.length} bench
+                    </p>
+                </div>
+                <div className="team-banner rounded-2xl px-4 py-3 text-right text-white sm:min-w-32">
+                    <p className="text-xs uppercase tracking-[0.2em] text-white/70">Total power</p>
+                    <p className="headline-font text-2xl font-bold">{team.totalSkill}</p>
+                </div>
+            </div>
+
+            <div className="mt-5 space-y-2">
+                {MOBILE_POSITION_ROWS.map((row) => (
+                    <div key={row.join('-')} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        {row.map((positionNumber) => (
+                            <div
+                                key={positionNumber}
+                                className={`rounded-2xl border border-(--line) bg-white/75 p-2 ${isDropTarget(team.id, playerByPosition[positionNumber]?.id ?? null) ? 'team-card-drop' : ''}`}
+                                onDragOver={(event) => onAllowDrop(event, team.id, playerByPosition[positionNumber]?.id ?? null, positionNumber)}
+                                onDrop={(event) => onDrop(event, team.id, playerByPosition[positionNumber]?.id ?? null, positionNumber)}
+                            >
+                                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-(--muted)">Pos {positionNumber}</p>
+                                {playerByPosition[positionNumber] ? (
+                                    <PlayerMiniCard
+                                        player={playerByPosition[positionNumber]}
+                                        positionNumber={positionNumber}
+                                        teamVariant={teamVariant}
+                                        compact
+                                        isDropTarget={isDropTarget(team.id, playerByPosition[positionNumber].id)}
+                                        onDragStart={(event) => onPlayerDragStart(event, team.id, playerByPosition[positionNumber].id)}
+                                        onDragEnd={onDragEnd}
+                                        onDragOver={(event) => onAllowDrop(event, team.id, playerByPosition[positionNumber].id, positionNumber)}
+                                        onDrop={(event) => onDrop(event, team.id, playerByPosition[positionNumber].id, positionNumber)}
+                                    />
+                                ) : (
+                                    <div className="rounded-xl border border-dashed border-(--line) px-2 py-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-(--muted)">
+                                        Empty
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-(--line) bg-white/74 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-(--muted)">Bench</p>
+                    <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-[11px] font-semibold text-(--foreground)">
+                        {benchPlayers.length}
+                    </span>
+                </div>
+                {benchPlayers.length ? (
+                    <div className="space-y-2">
+                        {benchPlayers.map((player) => (
+                            <PlayerMiniCard
+                                key={player.id}
+                                player={player}
+                                teamVariant={teamVariant}
+                                isDropTarget={isDropTarget(team.id, player.id)}
+                                onDragStart={(event) => onPlayerDragStart(event, team.id, player.id)}
+                                onDragEnd={onDragEnd}
+                                onDragOver={(event) => onAllowDrop(event, team.id, player.id)}
+                                onDrop={(event) => onDrop(event, team.id, player.id)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
+                        No bench players
+                    </div>
+                )}
+            </div>
+        </article>
     );
 }
 
@@ -320,145 +429,169 @@ export default function TeamResults({ teams, scoreSpread, hasTeams, onReshuffle,
 
                             return (
                                 <>
-                                    <div className="mt-6 grid gap-3 md:grid-cols-2">
+                                    <div className="mt-6 hidden gap-3 md:grid md:grid-cols-2">
                                         <article className="rounded-3xl border border-(--line) bg-white/82 p-4">
-                                            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-(--muted)">Team A</p>
-                                            <h3 className="headline-font mt-1 text-xl font-bold">Team {leftTeam.id}</h3>
+                                            <h3 className="headline-font text-xl font-bold">Team {leftTeam.id}</h3>
                                             <p className="mt-1 text-sm text-(--muted)">
                                                 {leftTeam.players.length} players, total power {leftTeam.totalSkill}
                                             </p>
                                         </article>
                                         <article className="rounded-3xl border border-(--line) bg-white/82 p-4">
-                                            <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-(--muted)">Team B</p>
-                                            <h3 className="headline-font mt-1 text-xl font-bold">Team {rightTeam.id}</h3>
+                                            <h3 className="headline-font text-xl font-bold">Team {rightTeam.id}</h3>
                                             <p className="mt-1 text-sm text-(--muted)">
                                                 {rightTeam.players.length} players, total power {rightTeam.totalSkill}
                                             </p>
                                         </article>
                                     </div>
 
-                                    <div className="court-stage mt-4 overflow-hidden rounded-4xl p-3 md:p-5">
-                                        <div className="court-surface rounded-[1.75rem] p-4 md:p-5">
-                                            <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
-                                                <p className="headline-font text-sm font-bold uppercase tracking-[0.2em] text-white">Team A</p>
-                                                <span className="text-white/60">|</span>
-                                                <p className="headline-font text-sm font-bold uppercase tracking-[0.2em] text-white">Team B</p>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                {COURT_POSITION_ROWS.map((leftRow, rowIndex) => {
-                                                    const rightRow = COURT_POSITION_ROWS_MIRROR[rowIndex];
-
-                                                    return (
-                                                        <div key={leftRow.join('-')} className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2">
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {leftRow.map((positionNumber) => (
-                                                                    <PositionSlot
-                                                                        key={`left-${positionNumber}`}
-                                                                        teamId={leftTeam.id}
-                                                                        teamVariant={leftVariant}
-                                                                        positionNumber={positionNumber}
-                                                                        player={leftPositions[positionNumber]}
-                                                                        isDropTarget={isDropTarget(leftTeam.id, leftPositions[positionNumber]?.id ?? null)}
-                                                                        onPlayerDragStart={handlePlayerDragStart}
-                                                                        onDragEnd={handleDragEnd}
-                                                                        onAllowDrop={allowDrop}
-                                                                        onDrop={handleDrop}
-                                                                    />
-                                                                ))}
-                                                            </div>
-
-                                                            <div className="flex items-center justify-center text-lg font-bold text-white/55">|</div>
-
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {rightRow.map((positionNumber) => (
-                                                                    <PositionSlot
-                                                                        key={`right-${positionNumber}`}
-                                                                        teamId={rightTeam.id}
-                                                                        teamVariant={rightVariant}
-                                                                        positionNumber={positionNumber}
-                                                                        player={rightPositions[positionNumber]}
-                                                                        isDropTarget={isDropTarget(rightTeam.id, rightPositions[positionNumber]?.id ?? null)}
-                                                                        onPlayerDragStart={handlePlayerDragStart}
-                                                                        onDragEnd={handleDragEnd}
-                                                                        onAllowDrop={allowDrop}
-                                                                        onDrop={handleDrop}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
+                                    <div className="mt-4 grid gap-4 md:hidden">
+                                        <TeamLineupCard
+                                            team={leftTeam}
+                                            teamVariant={leftVariant}
+                                            playerByPosition={leftPositions}
+                                            benchPlayers={leftBenchPlayers}
+                                            isDropTarget={isDropTarget}
+                                            onAllowDrop={allowDrop}
+                                            onDrop={handleDrop}
+                                            onPlayerDragStart={handlePlayerDragStart}
+                                            onDragEnd={handleDragEnd}
+                                        />
+                                        <TeamLineupCard
+                                            team={rightTeam}
+                                            teamVariant={rightVariant}
+                                            playerByPosition={rightPositions}
+                                            benchPlayers={rightBenchPlayers}
+                                            isDropTarget={isDropTarget}
+                                            onAllowDrop={allowDrop}
+                                            onDrop={handleDrop}
+                                            onPlayerDragStart={handlePlayerDragStart}
+                                            onDragEnd={handleDragEnd}
+                                        />
                                     </div>
 
-                                    <div className="bench-deck mt-4 grid gap-3 md:grid-cols-2">
-                                        <article
-                                            className={`rounded-3xl border border-(--line) bg-white/82 p-4 ${isDropTarget(leftTeam.id, null) ? 'team-card-drop' : ''}`}
-                                            onDragOver={(event) => allowDrop(event, leftTeam.id)}
-                                            onDrop={(event) => handleDrop(event, leftTeam.id)}
-                                        >
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-(--muted)">Team A Bench</p>
-                                                <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-xs font-semibold text-(--foreground)">
-                                                    {leftBenchPlayers.length}
-                                                </span>
-                                            </div>
-                                            {leftBenchPlayers.length ? (
-                                                <div className="space-y-2">
-                                                    {leftBenchPlayers.map((player) => (
-                                                        <PlayerMiniCard
-                                                            key={player.id}
-                                                            player={player}
-                                                            teamVariant={leftVariant}
-                                                            isDropTarget={isDropTarget(leftTeam.id, player.id)}
-                                                            onDragStart={(event) => handlePlayerDragStart(event, leftTeam.id, player.id)}
-                                                            onDragEnd={handleDragEnd}
-                                                            onDragOver={(event) => allowDrop(event, leftTeam.id, player.id)}
-                                                            onDrop={(event) => handleDrop(event, leftTeam.id, player.id)}
-                                                        />
-                                                    ))}
+                                    <div className="hidden md:block">
+                                        <div className="court-stage mt-4 overflow-hidden rounded-4xl p-3 md:p-5">
+                                            <div className="court-surface rounded-[1.75rem] p-4 md:p-5">
+                                                <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center">
+                                                    <p className="headline-font text-sm font-bold uppercase tracking-[0.2em] text-white">Team {leftTeam.id}</p>
+                                                    <span className="text-white/60">|</span>
+                                                    <p className="headline-font text-sm font-bold uppercase tracking-[0.2em] text-white">Team {rightTeam.id}</p>
                                                 </div>
-                                            ) : (
-                                                <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
-                                                    No bench players
-                                                </div>
-                                            )}
-                                        </article>
 
-                                        <article
-                                            className={`rounded-3xl border border-(--line) bg-white/82 p-4 ${isDropTarget(rightTeam.id, null) ? 'team-card-drop' : ''}`}
-                                            onDragOver={(event) => allowDrop(event, rightTeam.id)}
-                                            onDrop={(event) => handleDrop(event, rightTeam.id)}
-                                        >
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-(--muted)">Team B Bench</p>
-                                                <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-xs font-semibold text-(--foreground)">
-                                                    {rightBenchPlayers.length}
-                                                </span>
-                                            </div>
-                                            {rightBenchPlayers.length ? (
                                                 <div className="space-y-2">
-                                                    {rightBenchPlayers.map((player) => (
-                                                        <PlayerMiniCard
-                                                            key={player.id}
-                                                            player={player}
-                                                            teamVariant={rightVariant}
-                                                            isDropTarget={isDropTarget(rightTeam.id, player.id)}
-                                                            onDragStart={(event) => handlePlayerDragStart(event, rightTeam.id, player.id)}
-                                                            onDragEnd={handleDragEnd}
-                                                            onDragOver={(event) => allowDrop(event, rightTeam.id, player.id)}
-                                                            onDrop={(event) => handleDrop(event, rightTeam.id, player.id)}
-                                                        />
-                                                    ))}
+                                                    {COURT_POSITION_ROWS.map((leftRow, rowIndex) => {
+                                                        const rightRow = COURT_POSITION_ROWS_MIRROR[rowIndex];
+
+                                                        return (
+                                                            <div key={leftRow.join('-')} className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2">
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {leftRow.map((positionNumber) => (
+                                                                        <PositionSlot
+                                                                            key={`left-${positionNumber}`}
+                                                                            teamId={leftTeam.id}
+                                                                            teamVariant={leftVariant}
+                                                                            positionNumber={positionNumber}
+                                                                            player={leftPositions[positionNumber]}
+                                                                            isDropTarget={isDropTarget(leftTeam.id, leftPositions[positionNumber]?.id ?? null)}
+                                                                            onPlayerDragStart={handlePlayerDragStart}
+                                                                            onDragEnd={handleDragEnd}
+                                                                            onAllowDrop={allowDrop}
+                                                                            onDrop={handleDrop}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+
+                                                                <div className="flex items-center justify-center text-lg font-bold text-white/55">|</div>
+
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {rightRow.map((positionNumber) => (
+                                                                        <PositionSlot
+                                                                            key={`right-${positionNumber}`}
+                                                                            teamId={rightTeam.id}
+                                                                            teamVariant={rightVariant}
+                                                                            positionNumber={positionNumber}
+                                                                            player={rightPositions[positionNumber]}
+                                                                            isDropTarget={isDropTarget(rightTeam.id, rightPositions[positionNumber]?.id ?? null)}
+                                                                            onPlayerDragStart={handlePlayerDragStart}
+                                                                            onDragEnd={handleDragEnd}
+                                                                            onAllowDrop={allowDrop}
+                                                                            onDrop={handleDrop}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                            ) : (
-                                                <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
-                                                    No bench players
+                                            </div>
+                                        </div>
+                                        <div className="bench-deck mt-4 grid gap-3 md:grid-cols-2">
+                                            <article
+                                                className={`rounded-3xl border border-(--line) bg-white/82 p-4 ${isDropTarget(leftTeam.id, null) ? 'team-card-drop' : ''}`}
+                                                onDragOver={(event) => allowDrop(event, leftTeam.id)}
+                                                onDrop={(event) => handleDrop(event, leftTeam.id)}
+                                            >
+                                                <div className="mb-3 flex items-center justify-between">
+                                                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-(--muted)">Team {leftTeam.id} Bench</p>
+                                                    <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-xs font-semibold text-(--foreground)">
+                                                        {leftBenchPlayers.length}
+                                                    </span>
                                                 </div>
-                                            )}
-                                        </article>
+                                                {leftBenchPlayers.length ? (
+                                                    <div className="space-y-2">
+                                                        {leftBenchPlayers.map((player) => (
+                                                            <PlayerMiniCard
+                                                                key={player.id}
+                                                                player={player}
+                                                                teamVariant={leftVariant}
+                                                                isDropTarget={isDropTarget(leftTeam.id, player.id)}
+                                                                onDragStart={(event) => handlePlayerDragStart(event, leftTeam.id, player.id)}
+                                                                onDragEnd={handleDragEnd}
+                                                                onDragOver={(event) => allowDrop(event, leftTeam.id, player.id)}
+                                                                onDrop={(event) => handleDrop(event, leftTeam.id, player.id)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
+                                                        No bench players
+                                                    </div>
+                                                )}
+                                            </article>
+
+                                            <article
+                                                className={`rounded-3xl border border-(--line) bg-white/82 p-4 ${isDropTarget(rightTeam.id, null) ? 'team-card-drop' : ''}`}
+                                                onDragOver={(event) => allowDrop(event, rightTeam.id)}
+                                                onDrop={(event) => handleDrop(event, rightTeam.id)}
+                                            >
+                                                <div className="mb-3 flex items-center justify-between">
+                                                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-(--muted)">Team {rightTeam.id} Bench</p>
+                                                    <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-xs font-semibold text-(--foreground)">
+                                                        {rightBenchPlayers.length}
+                                                    </span>
+                                                </div>
+                                                {rightBenchPlayers.length ? (
+                                                    <div className="space-y-2">
+                                                        {rightBenchPlayers.map((player) => (
+                                                            <PlayerMiniCard
+                                                                key={player.id}
+                                                                player={player}
+                                                                teamVariant={rightVariant}
+                                                                isDropTarget={isDropTarget(rightTeam.id, player.id)}
+                                                                onDragStart={(event) => handlePlayerDragStart(event, rightTeam.id, player.id)}
+                                                                onDragEnd={handleDragEnd}
+                                                                onDragOver={(event) => allowDrop(event, rightTeam.id, player.id)}
+                                                                onDrop={(event) => handleDrop(event, rightTeam.id, player.id)}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
+                                                        No bench players
+                                                    </div>
+                                                )}
+                                            </article>
+                                        </div>
                                     </div>
                                 </>
                             );
@@ -470,92 +603,18 @@ export default function TeamResults({ teams, scoreSpread, hasTeams, onReshuffle,
                                 const { playerByPosition, benchPlayers } = assignPlayersToPositions(team.players);
 
                                 return (
-                                <article
-                                    key={team.id}
-                                    className={`team-card rounded-[1.75rem] p-5 transition ${isDropTarget(team.id, null) ? 'team-card-drop' : ''}`}
-                                    onDragOver={(event) => allowDrop(event, team.id)}
-                                    onDrop={(event) => handleDrop(event, team.id)}
-                                >
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div>
-                                            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-(--muted)">Squad card</p>
-                                            <h3 className="headline-font mt-1 flex items-center gap-2 text-xl font-bold">
-                                                <VolleyballIcon className="h-5 w-5 text-(--accent-strong)" />
-                                                Team {team.id}
-                                            </h3>
-                                            <p className="mt-1 text-sm text-(--muted)">
-                                                Setter centered, attackers on side lanes, {benchPlayers.length} bench
-                                            </p>
-                                        </div>
-                                        <div className="team-banner rounded-2xl px-4 py-3 text-right text-white">
-                                            <p className="text-xs uppercase tracking-[0.2em] text-white/70">Total power</p>
-                                            <p className="headline-font text-2xl font-bold">{team.totalSkill}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-5 space-y-2">
-                                        {COURT_POSITION_ROWS.map((row) => (
-                                            <div key={row.join('-')} className="grid grid-cols-2 gap-2">
-                                                {row.map((positionNumber) => (
-                                                    <div
-                                                        key={positionNumber}
-                                                        className={`rounded-2xl border border-(--line) bg-white/75 p-2 ${isDropTarget(team.id, playerByPosition[positionNumber]?.id ?? null) ? 'team-card-drop' : ''}`}
-                                                        onDragOver={(event) => allowDrop(event, team.id, playerByPosition[positionNumber]?.id ?? null)}
-                                                        onDrop={(event) => handleDrop(event, team.id, playerByPosition[positionNumber]?.id ?? null)}
-                                                    >
-                                                        <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-(--muted)">Pos {positionNumber}</p>
-                                                        {playerByPosition[positionNumber] ? (
-                                                            <PlayerMiniCard
-                                                                player={playerByPosition[positionNumber]}
-                                                                positionNumber={positionNumber}
-                                                                teamVariant={teamVariant}
-                                                                compact
-                                                                isDropTarget={isDropTarget(team.id, playerByPosition[positionNumber].id)}
-                                                                onDragStart={(event) => handlePlayerDragStart(event, team.id, playerByPosition[positionNumber].id)}
-                                                                onDragEnd={handleDragEnd}
-                                                                onDragOver={(event) => allowDrop(event, team.id, playerByPosition[positionNumber].id)}
-                                                                onDrop={(event) => handleDrop(event, team.id, playerByPosition[positionNumber].id)}
-                                                            />
-                                                        ) : (
-                                                            <div className="rounded-xl border border-dashed border-(--line) px-2 py-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-(--muted)">
-                                                                Empty
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="mt-4 rounded-2xl border border-(--line) bg-white/74 p-3">
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-(--muted)">Bench</p>
-                                            <span className="rounded-full border border-(--line) bg-white px-2 py-0.5 text-[11px] font-semibold text-(--foreground)">
-                                                {benchPlayers.length}
-                                            </span>
-                                        </div>
-                                        {benchPlayers.length ? (
-                                            <div className="space-y-2">
-                                                {benchPlayers.map((player) => (
-                                                    <PlayerMiniCard
-                                                        key={player.id}
-                                                        player={player}
-                                                        teamVariant={teamVariant}
-                                                        isDropTarget={isDropTarget(team.id, player.id)}
-                                                        onDragStart={(event) => handlePlayerDragStart(event, team.id, player.id)}
-                                                        onDragEnd={handleDragEnd}
-                                                        onDragOver={(event) => allowDrop(event, team.id, player.id)}
-                                                        onDrop={(event) => handleDrop(event, team.id, player.id)}
-                                                    />
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="rounded-xl border border-dashed border-(--line) px-3 py-3 text-center text-xs uppercase tracking-[0.14em] text-(--muted)">
-                                                No bench players
-                                            </div>
-                                        )}
-                                    </div>
-                                </article>
+                                    <TeamLineupCard
+                                        key={team.id}
+                                        team={team}
+                                        teamVariant={teamVariant}
+                                        playerByPosition={playerByPosition}
+                                        benchPlayers={benchPlayers}
+                                        isDropTarget={isDropTarget}
+                                        onAllowDrop={allowDrop}
+                                        onDrop={handleDrop}
+                                        onPlayerDragStart={handlePlayerDragStart}
+                                        onDragEnd={handleDragEnd}
+                                    />
                                 );
                             })}
                         </div>

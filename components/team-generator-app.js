@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import PlayerForm from '@/components/player-form';
 import PlayerList from '@/components/player-list';
@@ -33,6 +33,7 @@ export default function TeamGeneratorApp() {
     const [teamCount, setTeamCount] = useState(2);
     const [error, setError] = useState('');
     const [result, setResult] = useState({ teams: [], scoreSpread: 0 });
+    const outputRef = useRef(null);
 
     useEffect(() => {
         try {
@@ -140,6 +141,13 @@ export default function TeamGeneratorApp() {
 
         setError('');
         setResult(nextResult);
+
+        requestAnimationFrame(() => {
+            outputRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        });
     }
 
     function handleReshuffle() {
@@ -222,7 +230,7 @@ export default function TeamGeneratorApp() {
                     </div>
                 </section>
 
-                <div className="mt-8">
+                <div ref={outputRef} className="mt-8">
                     <TeamResults
                         teams={result.teams}
                         scoreSpread={result.scoreSpread}

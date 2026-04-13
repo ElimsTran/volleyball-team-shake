@@ -567,7 +567,19 @@ select {
     background: rgba(10, 18, 34, 0.34);
 }
 
+.court-slot-body {
+    min-height: 3.1rem;
+}
+
+.court-slot-body>* {
+    width: 100%;
+}
+
 .court-slot-empty {
+    display: flex;
+    min-height: 3.1rem;
+    align-items: center;
+    justify-content: center;
     background: rgba(10, 18, 34, 0.14);
 }
 

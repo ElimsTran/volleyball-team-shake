@@ -111,48 +111,52 @@ export default function PlayerList({ players, teamCount, onTeamCountChange, onUp
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <select
-                                    value={player.skill}
-                                    onChange={(event) => onUpdatePlayerSkill(player.id, event.target.value)}
-                                    disabled={player.enabled === false}
-                                    className="rounded-2xl border border-(--line) bg-white/85 px-3 py-2 text-sm font-semibold text-(--foreground) outline-none transition focus:border-(--accent)"
-                                >
-                                    {SKILL_LEVEL_OPTIONS.map((skill) => (
-                                        <option key={skill.value} value={skill.value}>
-                                            {skill.label}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="flex w-full flex-col gap-3 sm:w-auto lg:items-end">
+                                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                                    <select
+                                        value={player.skill}
+                                        onChange={(event) => onUpdatePlayerSkill(player.id, event.target.value)}
+                                        disabled={player.enabled === false}
+                                        className="rounded-2xl border border-(--line) bg-white/85 px-3 py-2 text-sm font-semibold text-(--foreground) outline-none transition focus:border-(--accent)"
+                                    >
+                                        {SKILL_LEVEL_OPTIONS.map((skill) => (
+                                            <option key={skill.value} value={skill.value}>
+                                                {skill.label}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                <select
-                                    value={player.role}
-                                    onChange={(event) => onUpdatePlayerRole(player.id, event.target.value)}
-                                    disabled={player.enabled === false}
-                                    className="rounded-2xl border border-(--line) bg-white/85 px-3 py-2 text-sm font-semibold text-(--foreground) outline-none transition focus:border-(--accent)"
-                                >
-                                    <option value="normal">Normal</option>
-                                    <option value="setter">Setter</option>
-                                    <option value="attacker">Attacker</option>
-                                </select>
+                                    <select
+                                        value={player.role}
+                                        onChange={(event) => onUpdatePlayerRole(player.id, event.target.value)}
+                                        disabled={player.enabled === false}
+                                        className="rounded-2xl border border-(--line) bg-white/85 px-3 py-2 text-sm font-semibold text-(--foreground) outline-none transition focus:border-(--accent)"
+                                    >
+                                        <option value="normal">Normal</option>
+                                        <option value="setter">Setter</option>
+                                        <option value="attacker">Attacker</option>
+                                    </select>
+                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => onTogglePlayerEnabled(player.id)}
-                                    className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${player.enabled === false
-                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5'
-                                        : 'border-(--line) bg-white/80 text-(--muted) hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-700'}`}
-                                >
-                                    {player.enabled === false ? 'Enable' : 'Disable'}
-                                </button>
+                                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => onTogglePlayerEnabled(player.id)}
+                                        className={`rounded-full border px-3 py-2 text-sm font-semibold transition ${player.enabled === false
+                                            ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:-translate-y-0.5'
+                                            : 'border-(--line) bg-white/80 text-(--muted) hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-700'}`}
+                                    >
+                                        {player.enabled === false ? 'Enable' : 'Disable'}
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    onClick={() => onRemovePlayer(player.id)}
-                                    className="rounded-full border border-(--line) bg-white/80 px-3 py-2 text-sm font-semibold text-(--muted) transition hover:-translate-y-0.5 hover:border-red-200 hover:text-(--danger)"
-                                >
-                                    Remove
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => onRemovePlayer(player.id)}
+                                        className="rounded-full border border-(--line) bg-white/80 px-3 py-2 text-sm font-semibold text-(--muted) transition hover:-translate-y-0.5 hover:border-red-200 hover:text-(--danger)"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))
